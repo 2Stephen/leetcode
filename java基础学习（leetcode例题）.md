@@ -89,6 +89,52 @@ public int[] occurrencesOfElement(int[] nums, int[] queries, int x) {
     }
 ``````
 
+## 四.[幸福值最大化的选择方案](https://leetcode.cn/problems/maximize-happiness-of-selected-children/)(中等)
+
+1.[我的题解](https://leetcode.cn/problems/maximize-happiness-of-selected-children/solutions/2830766/zui-you-hua-xuan-ze-tan-xin-by-nifty-i3o-tv2z/)
+
+2.调库排序
+
++ `Arrays.sort(int[])`
+
+``````java
+class Solution {
+    public long maximumHappinessSum(int[] happiness, int k) {
+      //解释在题解
+        long ans = 0;
+        int n = happiness.length;
+        if(k <= Math.log(n)/Math.log(2)){
+            for(int i = 0; i < k;i++){
+                long max_num = 0;
+                int flag = -1;
+                for(int j = 0 ;j < n;j++){
+                    if(max_num < happiness[j]){
+                        max_num = happiness[j];
+                        flag = j;
+                    }
+                }
+                if((max_num - i) <= 0) break;
+                ans += max_num-i;
+                happiness[flag] = 0;
+            }
+        }
+        else{
+            Arrays.sort(happiness);
+            for(int i = n-1;i > n-1-k;i--){
+                int j = n - i - 1;
+                if((happiness[i] - j) > 0) ans += (happiness[i] - j);
+                else break;
+            }
+        }
+        return ans;
+    }
+}
+``````
+
+
+
+
+
 
 
 
