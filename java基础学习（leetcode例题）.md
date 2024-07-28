@@ -131,11 +131,528 @@ class Solution {
 }
 ``````
 
+## 五.[448. 找到所有数组中消失的数字](https://leetcode.cn/problems/find-all-numbers-disappeared-in-an-array/)（简单）
+
+> 这题我都不想写题解，因为我的解题方法很奇葩，基础版很简单，就是在创建一个数组，长度为nums.length,然后遍历nums，`nums[i] - 1`作为下标索引位置标记新数组（哈希表），最后遍历一遍新数组，看哪个位置没被标记，哪里就是没出现的数字
+
+\- 时间复杂度: *O(n)*
+
+\- 空间复杂度: *O(n)*
+
++ **but but but，题目说有进阶版，不去额外占用空间**，这我就来劲了，想了好久，写了一坨，惨不忍睹，一般代码写不下去的时候，删掉它！重新写，这是我认为最好的方法
++ 仔细阅读题目条件和数字范围，发现数组数字大小肯定不会大于`nums.length`，那这就好办了，把自己作为哈希表，出现过的数字对应下标对应的位置就加个`nums.length`就好了，然后最后看哪个位置的数字大小小于`nums.length`。（这很绕嘴，不如直接上代码）
++ List是一个接口，官方文档对list的解释`public interface List<E>`，所以初始化时候不能用`List<Integer>ans = new List<>();`必须用`LinkedList`或者`ArrayList`等实现类来初始化。
+
+``````java
+public List<Integer> findDisappearedNumbers(int[] nums) {
+        int len = nums.length;
+        for(int i = 0; i < len; i++){
+            nums[(nums[i] - 1)%len] += len;
+        }
+        List<Integer>ans = new ArrayList<>();
+        for(int i = 0; i < len; i++){
+            if(nums[i] <= len) ans.add(i + 1);
+        }
+        return ans;
+    }
+``````
+
+## 六.[6. Z 字形变换](https://leetcode.cn/problems/zigzag-conversion/)(中等)
+
+> 不要被唬住，很简单一道题，看着复杂，做着简单
+>
+> 他说是z型，但是不要看成z，看成v就行，每个v是一组
+>
+> ```ma
+> 输入：s = "PAYPALISHIRING", numRows = 4
+> 输出："PINALSIGYAHRPI"
+> 解释：
+> P     I    N
+> A   L S  I G
+> Y A   H R
+> P     I
+> ```
+>
+> 第一个v：PAYPAL
+>
+> 第二个v：ISHIRI
+>
+> 第三个v：NG
+>
+> 看第一行，PIN，也就是s数组第0个、第6个、第12个，至于为什么6倍增长，因为z是四行的时候，每个v大小就是4，我们可以总结规律，LenOfV is (numsRows - 1) * 2
+>
+> 这样就简单了，第二行就是s的第1个+第5个，然后自增6，第三行同理，最后一行只有v里的一个元素
+
++ 应避免用String类型进行频繁修改，因为String类型不可修改，如果用Str 1 = Str1 + Str2，会重新给Str1开辟新空间，浪费空间，还费时间，第一次我就用的String作为ans，时间、空间复杂度才超过leetcode提交记录的20%多，但是把String 类型变为StringBuilder类型会节省很多时间、空间，均超过了98%的提交记录
+
+\- 时间复杂度: *O(n)*
+
+\- 空间复杂度: *O(n)*
+
+``````java
+public String convert(String s, int numRows) {
+        int PerZ = (numRows - 1) * 2;
+        int len = s.length();
+        StringBuilder ans = new StringBuilder();
+        if (PerZ == 0) return s;
+        for (int j = 0; j < len; j += PerZ) {
+            ans.append(s.charAt(j)) ;
+        }
+        for (int i = 1; i < PerZ / 2; i++) {
+            for (int j = i; j < len; j += PerZ) {
+                ans.append(s.charAt(j)) ;
+                if (PerZ - i * 2 + j < len) ans.append(s.charAt(PerZ - i * 2 + j));
+            }
+        }
+        for (int j = PerZ / 2; j < len; j += PerZ) {
+            ans.append(s.charAt(j));
+        }
+        return ans.toString();
+    }
+``````
 
 
 
+## 七.[807. 保持城市天际线](https://leetcode.cn/problems/max-increase-to-keep-city-skyline/)(中等)
+
+>贪心，这题不需要考虑下标，因为表格是n*n的，不管横着遍历还是竖着遍历，只要遍历完就行，不用思考下标写的对不对
+
++ 三目运算符：`条件?a:b`   条件成立执行a，不成立执行b
+
+``````java
+class Solution {
+    public int maxIncreaseKeepingSkyline(int[][] grid) {
+        int len = grid.length;
+        int ans = 0;
+        int[][] maxArr = new int[2][len];
+        for(int i = 0;i < len;i++){	//求出每行、每列的最大值
+            for(int j = 0;j < len;j++){
+                maxArr[0][i] = maxArr[0][i] < grid[i][j] ? grid[i][j]:maxArr[0][i];
+                maxArr[1][i] = maxArr[1][i] < grid[j][i] ? grid[j][i]:maxArr[1][i];
+            }
+        }
+        for(int i = 0; i < len; i++){	//为了不影响原有高度，需要取所在行和列最高值的最小值
+            for(int j = 0;j < len;j++){
+                ans += maxArr[0][i] < maxArr[1][j]?maxArr[0][i] : maxArr[1][j];
+                ans -= grid[i][j];
+            }
+        }
+        return ans;
+    }
+}
+``````
+
+## 八.[100352. 交换后字典序最小的字符串](https://leetcode.cn/problems/lexicographically-smallest-string-after-a-swap/)（简单，406周赛）
+
+- 时间复杂度、空间复杂度击败100%
+
+> 修改字符串某位用`setCharAt`，但是不能是String类型
+>
+> toString方法可以将StringBuilder转换成字符串
+
+``````JAVA
+public String getSmallestString(String s) {
+        StringBuilder ans = new StringBuilder(s);
+        int len = s.length();
+        for(int i = 0; i < len - 1;i++){
+            if(s.charAt(i) > s.charAt(i+1) && s.charAt(i)%2 == s.charAt(i+1)%2){
+                char temp = s.charAt(i);
+                ans.setCharAt(i,ans.charAt(i+1));
+                ans.setCharAt(i + 1,temp);
+                return ans.toString();
+            }
+        }
+        return ans.toString();
+    }
+``````
+
+## 九.[100368. 从链表中移除在数组中存在的节点](https://leetcode.cn/problems/delete-nodes-from-linked-list-present-in-array/)(中等、406周赛)
+
+- 时间复杂度、空间复杂度击败100%
+
+> 将数组排序，然后二分查找即可，此时查找数组中存在的时间复杂度为排序用的时间复杂度*o(MAX(m,n)logn)*，如果不排序，顺序查找的话时间复杂度为*O(mn)*
+>
+> 考察链表基本操作、二分查找
+
+``````JAVA
+public boolean inNums(int n,int[] nums){
+        int le = 0;
+        int ri = nums.length - 1;
+        while(le <= ri){
+            int mid = (le + ri) / 2;
+            if(nums[mid] == n) return true;
+            else if(nums[mid] < n) le = mid + 1;
+            else ri = mid - 1;
+        }
+        return false;
+    }
+    public ListNode modifiedList(int[] nums, ListNode head) {
+        Arrays.sort(nums);
+        ListNode last = head;
+        ListNode nextNode = head.next;
+        while(nextNode != null){
+            if(inNums( nextNode.val,nums)){
+                last.next = nextNode.next;
+            }
+            else last = nextNode;
+            nextNode = nextNode.next;
+        }
+        if(inNums(head.val,nums)) return head.next;
+        else return head;
+    }
+``````
+
+## 十.[100361. 切蛋糕的最小总开销 I](https://leetcode.cn/problems/minimum-cost-for-cutting-cake-i/description/)（中等、406周赛）
+
+> + 排序：首先，对水平切割线和垂直切割线的位置进行排序，这是为了确保在处理切割时，我们总是按照从低到高的顺序考虑切割线。
+> + 双指针：使用两个指针（i_m 和 j_n）来分别追踪当前考虑的水平切割线和垂直切割线。这两个指针从数组的末尾开始向前移动，因为排序后，最大的切割线位置在数组的末尾。
+> + 切割成本计算：每次选择切割线时（无论是水平还是垂直），都会计算这条切割线产生的成本。这个成本是通过将切割线的位置值乘以这条切割线将分割出的行数（对于水平切割）或列数（对于垂直切割）加一来得到的。加一是因为每次切割都会新增一个区域。
+> + 更新计数器：对于每次选择的切割线，都会更新相应的计数器（HorCnt 表示水平切割的次数，VerCnt 表示垂直切割的次数）。这些计数器用于确定当前切割线将分割出多少个小矩形。
+> + 循环终止条件：当两个指针中的任一个到达数组的开头（即没有更多的切割线可以考虑）时，循环终止。然后，处理剩余的切割线（如果有的话），因为它们将只影响一个维度（行或列）。
+
++ 时间复杂度、空间复杂度击败100%
+
+\- 时间复杂度: *O(nlogn + mlogm)*
+
+\- 空间复杂度: *O(1)*
+
+``````JAVA
+public int minimumCost(int m, int n, int[] horizontalCut, int[] verticalCut) {
+        Arrays.sort(horizontalCut);
+        Arrays.sort(verticalCut);
+        int i_m = horizontalCut.length - 1;
+        int j_n = verticalCut.length - 1;
+        int VerCnt = 0;
+        int HorCnt = 0;
+        int ans = 0;
+        while(i_m >= 0 || j_n >= 0){
+            if(i_m < 0){
+                while (j_n >= 0){
+                    ans += verticalCut[j_n] * (HorCnt+1);
+                    j_n--;
+                }
+                break;
+            } else if (j_n < 0) {
+                while (i_m >= 0){
+                    ans += horizontalCut[i_m] * (VerCnt+1);
+                    i_m--;
+                }
+                break;
+            }
+            if(horizontalCut[i_m] > verticalCut[j_n]){
+                ans += horizontalCut[i_m] * (VerCnt+1);
+                HorCnt++;
+                i_m--;
+            }
+            else{
+                ans += verticalCut[j_n] * (HorCnt+1);
+                VerCnt++;
+                j_n--;
+            }
+        }
+        return ans;
+``````
+
+## 11.[切蛋糕的最小总开销 II](https://leetcode.cn/problems/minimum-cost-for-cutting-cake-ii/)(困难，406周赛)
+
+>至于这题题干和上面题目有哪里不一样，我始终没找出来，提交了一遍才发现，错误输出是一堆负数，原来是int溢出了，再一看返回值是long，那尝试把ans改成long不就好了，果然，AC
+
+``````java
+public long minimumCost(int m, int n, int[] horizontalCut, int[] verticalCut) {
+        Arrays.sort(horizontalCut);
+        Arrays.sort(verticalCut);
+        int i_m = horizontalCut.length - 1;
+        int j_n = verticalCut.length - 1;
+        int VerCnt = 0;
+        int HorCnt = 0;
+        long ans = 0;
+        while(i_m >= 0 || j_n >= 0){
+            if(i_m < 0){
+                while (j_n >= 0){
+                    ans += verticalCut[j_n] * (HorCnt+1);
+                    j_n--;
+                }
+                break;
+            } else if (j_n < 0) {
+                while (i_m >= 0){
+                    ans += horizontalCut[i_m] * (VerCnt+1);
+                    i_m--;
+                }
+                break;
+            }
+            if(horizontalCut[i_m] > verticalCut[j_n] ){
+                ans += horizontalCut[i_m] * (VerCnt+1);
+                HorCnt++;
+                i_m--;
+            }
+            else{
+                ans += verticalCut[j_n] * (HorCnt+1);
+                VerCnt++;
+                j_n--;
+            }
+        }
+        return ans;
+    }
+``````
+
+## 12.[找到两个数组中的公共元素](https://leetcode.cn/problems/find-common-elements-between-two-arrays/)(简单)
+
+> 哈希表秒了，题干给的范围很小，数字大小只有0到100，数组下标作为哈希的key就行了
+>
+> java new数组默认值为0
+
+``````JAVA
+public int[] findIntersectionValues(int[] nums1, int[] nums2) {
+        int hash[][] = new int[2][100];
+        int len1 = nums1.length;
+        int len2 = nums2.length;
+        for(int i = 0; i < len1;i++){
+            hash[0][nums1[i] - 1]++;
+        }
+        for(int i = 0; i < len2;i++){
+            hash[1][nums2[i] - 1]++;
+        }
+        int[] ans = new int[2];
+        for(int i = 0; i < 100;i++){
+            if(hash[1][i] != 0) ans[0] += hash[0][i];
+            if(hash[0][i] != 0) ans[1] += hash[1][i];
+        }
+        return ans;
+    }
+``````
+
+## 13.[两数相加](https://leetcode.cn/problems/add-two-numbers/)（中等）
+
+> 时间复杂度超越100%
+
++ 一次遍历，利用链表的灵活性，可以指向任意结点，短的链表没了直接指向长链表没遍历的部分，不推荐我自己写的代码。。。有点乱
++ Java的链表比c or cpp简单，不需要考虑带不带`*`、`&`等等，不用考虑摆弄寄存器，访问地址什么的，封装好了比较容易理解。
+
+``````java
+public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode ans = l1;
+        int upper = 0;
+        ListNode last = l1;
+        int flag = 1;
+        while (true){
+            int temp1 = l1 != null ? l1.val:0;
+            int temp2 = l2 != null ? l2.val:0;
+            l1.val  = ( (temp1 + temp2)/flag + upper);
+            upper = l1.val / 10;
+            l1.val %= 10;
+            if(l1.next == null) {
+                flag = 2;
+                l1.next = l2.next;
+                if (upper == 0) break;
+                else {
+                    if(l2.next == null)
+                        l1.next = new ListNode(0);
+                }
+            }
+            if(l2.next == null){
+                flag = 2;
+                l2.next = l1.next;
+                if (upper == 0) break;
+            }
+            l1 = l1.next;
+            l2 = l2.next;
+        }
+        return ans;
+    }
+``````
+
+## 14.[ 长度最小的子数组](https://leetcode.cn/problems/2VG8Kg/)（中等）
+
+> 滑动窗口，相较于官方答案有一些小小的优化，如果确定最小的长度就是 小于等于3了，那就不必考虑子数组长度大于3的情况了，这时候i 和j可以一起向后滑动，不需要先滑一个，再考虑第二个。
+>
+> 时间复杂度超过100%
+
++ 常见的系统给定的常量：`Math.PI、Integer.MAX_VALUE/MIN_VALUE等`
+
+``````java
+public int minSubArrayLen(int target, int[] nums) {
+        int ans = Integer.MAX_VALUE;
+        int i = 0, j = 0;
+        int len = nums.length;
+        int Cnt = 0;
+        boolean flag = false;
+        while(i < len){
+            Cnt += nums[i];
+            if(Cnt >= target){
+                flag = true;
+                ans = Math.min(ans,i - j + 1);
+            }
+            while(Cnt - nums[j] >= target){
+                Cnt -= nums[j++];
+                ans = Math.min(ans,i - j + 1);
+            }
+            if(flag) {
+                Cnt -= nums[j++];
+            }
+            i++;
+        }
+        if(ans == Integer.MAX_VALUE) return 0;
+        return ans;
+    }
+``````
+
+## 15.[ 得到更多分数的最少关卡数目](https://leetcode.cn/problems/minimum-levels-to-gain-more-points/)(中等)
+
+> int(-3/2) = -1,取的是ceiling，但是int(3/2) = 1,取的又是floor，所以找大于一半的策略时候会出错，故一律采用floor，即`Math.floorDiv`
+
+``````java
+public int minimumLevels(int[] possible) {
+        int Cnt = 0;
+        int len = possible.length;
+        for(int i:possible){	//第一次遍历，找到全部走完获得的最大分数
+            Cnt += i;
+            if(i == 0) Cnt -= 1;
+        }
+        Cnt = Math.floorDiv(Cnt, 2);
+        int CntAlice = 0;
+        for(int i = 0; i < len - 1; i++){		//第二次遍历，找到分数大于一半的情况，这样后面路径分数就一定小于一半，这就是最优解
+            CntAlice += possible[i];
+            if(possible[i] == 0) CntAlice -= 1;
+            if(CntAlice > Cnt) return i + 1;
+        }
+        return -1;
+    }
+``````
 
 
 
+## 16.[删除有序数组中的重复项 II](https://leetcode.cn/problems/remove-duplicates-from-sorted-array-ii/)(中等)
 
+>双指针，快指针遍历，慢指针做为存储位置
+
++ `nums[index++] = a`先执行`nums[index] = a`，再去执行自增操作，++在前面就先执行自增
+
+``````java
+public int removeDuplicates(int[] nums) {
+        int len = nums.length;
+        int index = 1;
+        int Cnt = 1;
+        for(int i = 1; i < len; i++){
+            if(nums[i - 1] != nums[i]){
+                Cnt = 0;
+                nums[index++] = nums[i];
+                Cnt++;
+            }else{
+                if(Cnt < 2){
+                    nums[index++] = nums[i];
+                    Cnt++;
+                }
+            }
+        }
+        return index;
+    }
+``````
+
+## 17.[环形链表](https://leetcode.cn/problems/linked-list-cycle/)(简单，面试题)
+
+> 快慢指针，因为进入环就会死循环，必须让两个指针都进入环，这样一快一慢，最终肯定会相遇
+
++ java实现链表简单，不需要考虑指针，地址什么的，面试给空白的调试器实现链表+程序，java比较简单一些，一个List类，其中包括两个字段，一个是val值，一个是List类型，指向next
+
+``````java
+public boolean hasCycle(ListNode head) {
+        ListNode i = head;
+        ListNode j = head;
+        while(i != null && j != null){
+            if(i.next != null) i = i.next.next;
+            else return false;
+            j = j.next;
+            if(i == j) return true;
+        }
+        return false;
+    }
+``````
+
+## 18.[满足距离约束且字典序最小的字符串](https://leetcode.cn/problems/lexicographically-smallest-string-after-operations-with-constraint/)(中等)
+
+> 由于java语言的特性，字符串不能原地修改，每次修改字符串都是在原有的基础上新建一个字符串，然后进行替换操作，而c /c++字符串则可以原地修改，所以我们只好新建一个`StringBuilder`类型来存储返回值
+>
+> 时间复杂度超越100%
+>
+> 空间复杂度是依托。。
+>
+> 这题用到一个贪心 + 类似取模的操作，题干说只有小写字母，大于z就类似取模
+
++ 在Java中，字符和数字可以相加，结果是一个整数。这是因为Java会将字符自动提升为整数类型（ASCII值），然后进行加法运算。如果结果超过了ASCII码的最大值（127），那么结果将是对应的Unicode字符的码点值。  
++ 例如，字符 'A' 的ASCII值是65，如果我们将其与数字60相加，结果将是125，这是一个有效的ASCII值。但是，如果我们将 'A' 与数字70相加，结果将是135，这超过了ASCII的最大值，但是它是一个有效的Unicode码点值，对应于某个Unicode字符。
+
+``````java
+public String getSmallestString(String s, int k) {
+        StringBuilder ans = new StringBuilder();
+        int len = s.length();
+        for (int i = 0; i < len; i++) {
+            if(k > 0) {
+                if (s.charAt(i) + k > 'z') {
+                    ans.append('a');
+                } else {
+                    ans.append(s.charAt(i) - k < 'a' ? 'a' : (char) (s.charAt(i) - k));
+                }
+                int temp = Math.abs(s.charAt(i) - ans.charAt(i));
+                k -= 26 - temp < temp ? 26 - temp : temp;
+            }
+            else{
+                ans.append(s.substring(i));
+                break;
+            }
+            
+        }
+        return ans.toString();
+    }
+``````
+
+## 19.[找到 K 个最接近的元素](https://leetcode.cn/problems/find-k-closest-elements/)(中等)
+
+> 二分查找+滑动窗口（双指针）
+>
+> 首先利用二分查找找到大致位置（arr[pos] 要么等于x，要么大于k且arr[pos - 1] 小于 x），然后选取大致位置的左面k个，窗口大小为k，然后进行滑动，如果右侧有最优解，就把左面舍弃
+>
+> 确保二分查找下标正确
+
+\- 时间复杂度: *O(MAX(k, logn))*
+
+\- 空间复杂度: *O(1)*
+
+``````java
+public List<Integer> findClosestElements(int[] arr, int k, int x) {
+        int le = 0;
+        int ri = arr.length - 1;
+        int mid;
+        int pos = -1;
+        while(le < ri){		//二分查找大致位置
+            mid = (ri - le)/2 + le;
+            if(arr[mid] < x) le = mid + 1;
+            else if(arr[mid] > x) ri = mid - 1;
+            else{
+                pos = mid;
+                break;
+            }
+        }
+        if(pos == -1) pos = ri;
+        if(pos - k < 0){		//判断左面是否有k个元素，如果没有就从0开始
+            le = 0;
+            ri = k - 1;
+        }else{
+            le = pos - k;
+            ri = pos - 1;
+        }
+        while(ri != arr.length - 1){		//进行滑动，如果右侧有最优解，就把左面舍弃
+            if(Math.abs(arr[le] - x) > Math.abs(arr[ri + 1] - x)){
+                le++;
+                ri++;
+            }else{
+                break;
+            }
+        }
+        List<Integer> ans = new ArrayList<>();
+        for(int i = le; i <= ri;i++){
+            ans.add(arr[i]);
+        }
+        return ans;
+    }
+``````
 
