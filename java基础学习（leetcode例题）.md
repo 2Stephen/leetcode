@@ -1,3 +1,5 @@
+[TOC]
+
 # java基础学习（leetcode例题）
 
 ## 一.[3099. 哈沙德数](https://leetcode.cn/problems/harshad-number/)(简单)
@@ -651,6 +653,150 @@ public List<Integer> findClosestElements(int[] arr, int k, int x) {
         List<Integer> ans = new ArrayList<>();
         for(int i = le; i <= ri;i++){
             ans.add(arr[i]);
+        }
+        return ans;
+    }
+``````
+
+## 20.[棒球比赛](https://leetcode.cn/problems/baseball-game/)(简单)
+
+> 简单题就用简单题的思路，大部分简单题都是按照题干实现就行，不需要考虑太多问题，本题利用了栈的思想，可以模拟栈，当然一看是简单题，也可以用自带的栈实现
+>
+> if - else if - else 情况多的时候可以用switch-case
+>
+> `Integer.valueOf()`和`String.valueOf`一起记有奇效，string转int就用Integer的valueOf，int转string就是Sting下的valueOf
+>
+> 可以使用java 的for-each循环
+>
+> ``````java
+> for (Type item : collection) {
+>     // 使用item进行操作
+> }
+> ``````
+
+``````java
+public int calPoints(String[] operations) {
+        Stack<String>stk = new Stack<>();
+        for(String s:operations){
+            if(s.equals("+")) {
+                String up = stk.pop();
+                String down = stk.pop();
+                stk.push(down);
+                stk.push(up);
+                int ans = Integer.valueOf(up)+Integer.valueOf(down);
+                stk.push(String.valueOf(ans));
+            }
+            else if(s.equals("C")) stk.pop();
+            else if(s.equals("D")){
+                String temp = stk.pop();
+                int ans = Integer.valueOf(temp);
+                ans*=2;
+                stk.push(temp);
+                stk.push(String.valueOf(ans));
+            }
+            else stk.push(s);
+        }
+        int ans = 0;
+        while(!stk.empty()){
+            ans += Integer.valueOf(stk.pop());
+        }
+        return ans;
+    }
+``````
+
+
+
+## 21.[统计同质子字符串的数目](https://leetcode.cn/problems/count-number-of-homogenous-substrings/)(中等)
+
+> `1e9 + 7`是浮点型，得转换成int型，不然不能取模
+>
+> 这题不需要考虑字符串内容是什么，只需要考虑个数，`aabbbcccc`我们可以分成"aa","bbb","cccc"，将相同的分成一组，两个相同的可以划分为3个同质子串`a,a,aa`
+>
+> aaaa的同质子串个数，我们发现是1+2+3+4，恰好和每次访问字符串时候的cnt一致，所以只需要一次遍历即可。
+
+``````java
+public int countHomogenous(String s) {
+        int ans = 0;
+        int len = s.length();
+        char lastCh = s.charAt(0);
+        int cnt = 0;
+        for(int i = 0; i < len; i++){
+            char c = s.charAt(i);
+            if(lastCh == c){
+                cnt++;
+            }else{
+                cnt = 1;
+                lastCh = c;
+            }
+            ans = (ans + cnt)%(int)(1e9 + 7);
+        }
+        return ans;
+    }
+``````
+
+## 22.[替换隐藏数字得到的最晚时间](https://leetcode.cn/problems/latest-time-by-replacing-hidden-digits/)(简单)
+
+> 把所有情况列出来就行，做个简单题放松一下
+>
+> 注意小时的第一个数和第二个数对应关系，第一个数是2，第二个数最大就是3，第二个数比3大，那第一个数最大就是1
+
+`````java
+public String maximumTime(String time) {
+        StringBuilder ans = new StringBuilder();
+        for(int i = 0; i < 5; i++){
+            if(time.charAt(i) == '?'){
+                if(i == 0){
+                    if(time.charAt(i + 1) >= '4' && time.charAt(i + 1) <= '9') ans.append('1');
+                    else ans.append('2');
+                }else if(i == 1){
+                    if(ans.charAt(0) == '2') ans.append('3');
+                    else ans.append('9');
+                }else if(i == 3) ans.append('5');
+                else ans.append('9');
+            }else ans.append(time.charAt(i));
+        }
+        return ans.toString();
+    }
+`````
+
+## 23.[完成所有任务的最少初始能量](https://leetcode.cn/problems/minimum-initial-energy-to-finish-tasks/)（困难）
+
+> `(o1, o2) -> (o2[1]-o2[0])-(o1[1]-o1[0])`Lambda 表达式，也称匿名函数，类似于JavaScript的箭头函数
+>
+> 可以用重写比较器来实现
+>
+> ``````java
+> Comparator<int[]>comparator = new Comparator<int[]>() {
+>             @Override
+>             public int compare(int[] o1, int[] o2) {
+>                 return Integer.compare(o2[1] - o2[0], o1[1] - o1[0]);
+>             }
+>         };
+> Arrays.sort(tasks, comparator);
+> ``````
+>
+> 实测，lambda表达式会比重写比较器快，来自github copilot解释：
+>
+> 原因主要有两点：
+>
+> + 语法简洁：Lambda表达式的语法更加简洁，没有额外的类定义和方法定义，因此在解析和编译时可能更快。  
+> + 运行时优化：Java运行时对Lambda表达式进行了优化。Lambda表达式在Java 8及以后的版本中被引入，这些版本的Java运行时包含了对Lambda表达式的优化，例如逃逸分析和即时编译（JIT）等技术，可以提高Lambda表达式的执行效率。
+>
+> 题目：排序+贪心
+>
+> 首先按照“最贪的人”从大到小排序，这个最贪的人指的是申请的最低能量高，但是实际能量又很少的人，例如[[1,1], [1,3]]，第二个人就比第一个人贪，它明明只需要1个能量，但是却申请三个，此时多出了两个可以给第一个人使用。如果第一个人先执行，那一共就需要四个能量，最后还余出来俩能量，非常的浪费！但是如果先执行第二个人的，那最后就需要三个能量，最后剩一个能量不可避免。
+
+``````java
+public int minimumEffort(int[][] tasks) {
+        Arrays.sort(tasks, (o1, o2) -> (o2[1]-o2[0])-(o1[1]-o1[0]));
+        int len = tasks.length;
+        int ans = 0;
+        int cur = 0;
+        for (int i = 0; i < len; i++){
+            int temp = (tasks[i][1] - cur) > 0 ? (tasks[i][1] - cur) : 0;
+            ans += temp;
+            cur += temp;
+            cur -= tasks[i][0];
         }
         return ans;
     }
