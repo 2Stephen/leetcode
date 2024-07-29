@@ -802,3 +802,54 @@ public int minimumEffort(int[][] tasks) {
     }
 ``````
 
+## 24.[分割字符串的方案数](https://leetcode.cn/problems/number-of-ways-to-split-a-string/)(中等)
+
+> 那个类型转换搞了我好一阵，对于这两个表达式：
+>
+> 1. **`(int)((long)(le+1)(ri+1)%MOD)`**
+>
+>    - 这里 `(le+1)` 和 `(ri+1)` 都先被提升为 `long` 类型。
+>    - 然后两者相乘 `(long)(le+1) * (ri+1)`，结果是 `long` 类型，不容易溢出。
+>    - 接着 `%MOD` 操作也在 `long` 范围内进行，防止了溢出。
+>
+> 2. **`(int)((long)((le+1)(ri+1))%MOD)`**
+>
+>    - 这里 `((le+1)(ri+1))` 是先在默认的 `int` 范围内进行乘法运算。
+>    - 如果结果超出了 `int` 的范围，就会溢出，即使之后转换为 `long` 也无法补救。
+>    - 之后的 `%MOD` 作用于已经溢出的值，因此结果是不正确的。
+>
+> 要避免溢出，可以确保在乘法之前就将操作数提升到足够大的数据类型。
+>
+> 这题不难，首先判断字符串中“1”的个数能否被3整除，不能肯定不行
+>
+> 然后如果全是0，就变成高中的排列组合问题了，在0000空隙插入两个隔板，即C(3,2)
+>
+> 最后也是隔板问题0110010100011，先分成“011”，“00“，”101”，“000”，“11”，分成五份，意思是第1,3,5份是不可分割部分，2,4块可分割，因为2,4块在中间，两个隔板一个放在第二块，一个放在第四块，隔板可以放在该块的最左面或者最右面，即C(2+1,1)*C(3+1,1);
+
+`````java
+static final int MOD = 1000000007;
+    public int numWays(String s) {
+        int ans = 0;
+        int CntOfOne = 0;
+        int len = s.length();
+        for(int i = 0; i < len; i++){
+            if(s.charAt(i) == '1') CntOfOne++;
+        }
+        if(CntOfOne % 3 == 0 && len >= 3){
+            if(CntOfOne == 0) return (int) ((long) (len - 1) * (len - 2) / 2 % MOD);
+            int temp = 0;
+            int le = 0;
+            int ri = 0;
+            for(int i = 0; i < len; i++){
+                if(s.charAt(i) == '1') temp++;
+                else{
+                    if(temp == CntOfOne / 3) le++;
+                    else if(temp == 2 * CntOfOne / 3) ri++;
+                }
+            }
+            return (int)((long)(le+1)*(ri+1)%MOD);
+        }
+        return 0;
+    }
+`````
+
