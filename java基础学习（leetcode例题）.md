@@ -853,3 +853,38 @@ static final int MOD = 1000000007;
     }
 `````
 
+## 25.[ 双模幂运算](https://leetcode.cn/problems/double-modular-exponentiation/)(中等)
+
+> 这道题很有意思，其实最主要是发现` (a * b)%p =(a%p * b%p)%p`，发现了这个int才不会溢出，还需要自己写幂函数，而且需要快速幂，例如3^7 可以分为 3^1 * 3^2 * 3^4，3^9 可以分为 3^1 * 3^2 * 3^4 *(3 * 3
+>
+> \- 时间复杂度: *O(nlogm)*
+
+``````java
+public int myPow(int a,int b,int mod){
+        int ans = a % mod;
+        int cnt = 1;
+        int i = 1;
+        while(true){
+            if(i * 2 >= b){
+                for(int j = i;j < b;j++) ans = (ans*a)%mod;
+                break;
+            }
+            ans = (ans*ans)%mod;
+            cnt += i;
+            i *= 2;
+        }
+        return ans;
+    }
+    public List<Integer> getGoodIndices(int[][] variables, int target) {
+        List<Integer>ans = new ArrayList<>();
+        int i = -1;
+        for(int[] arr:variables){
+            i++;
+            if(arr[3] <= target) continue;	//如果m比target还小，那取模m后肯定不会大于m，也不可能得出target
+            int val = myPow(myPow(arr[0],arr[1],10),arr[2],arr[3]);
+            if(val == target) ans.add(i);
+        }
+        return ans;
+    }
+``````
+
