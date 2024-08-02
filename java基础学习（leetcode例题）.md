@@ -888,3 +888,264 @@ public int myPow(int a,int b,int mod){
     }
 ``````
 
+## 26.[颜色分类](https://leetcode.cn/problems/sort-colors/)(中等)
+
+> 这是一道典型的双指针问题
+>
+> 这是三个数字的问题，思考，如果简化成只有0和1怎么解决排序问题，利用两个指针，一头一尾，尾指针是1，就向前移动，头指针只有是0的时候才向后移动，如果头指针不为0且尾指针为0就交换，这样我们便得到左面全0右面全1的数组
+>
+> 同理，我们如果先把1和2都考虑成1，那就变成了上面的问题了，首先我们假设[2, 1, 0, 0, 2, 1]，我们可以先设法把所有的0放在最左面，
+>
+> `[0, 1, 0, 2, 2, 1]`  *交换0号位和3号位*
+>
+> `[0, 0, 1, 2, 2, 1]`  *交换1号位和2号位*
+>
+> 此时我们发现，所有的0，都跑到了最左面，同理，我们可以对后面的1和2使用相同方法
+>
+> \- 时间复杂度: *O(n)*
+
+``````java
+public void swap(int[]nums, int i ,int j){
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+    public void sortColors(int[] nums) {
+        int i = 0;
+        int j = nums.length - 1;
+        while(i < j){
+            while(i < nums.length && nums[i] == 0) i++;
+            while(j >=0 && nums[j] != 0) j--;
+            if(i < j)
+                swap(nums,i,j);
+        }
+        j = nums.length - 1;
+        while(i < j){
+            while(i < nums.length && nums[i] == 1) i++;
+            while(j >= 0 && nums[j] == 2) j--;
+            if(i < j)
+                swap(nums,i,j);
+        }
+    }
+``````
+
+## 27.[划分字母区间](https://leetcode.cn/problems/partition-labels/)(中等)
+
+>经典的贪心算法
+>
+>我们需要记录每个字符第一次出现的位置，存到hash里，例如`abca`，a第一次出现的位置是0，b是1，c是2，下一个a不用管，因为之前已经出现过
+>
+>做好准备工作后我们需要从后往前遍历字符串，例如`aabcbdc`，最后一个是c，但是第一次出现c的位置并不在最后，所以我们知道最后一个子串至少是第一次出现c到最后一个c那么长（记为index）
+>
+>然后看倒数第二个d，是第一次出现，不用管。
+>
+>倒数第三个是b，不是第一次出现，那我们就更新子串长度到`min（第一次出现b的位置，index）`
+>
+>一直遍历到index，子串里如果有不满足条件的情况index会一直往前走
+>
+>满足条件这就可以被切割了。
+>
+>同理，依次找到最小的满足条件的子串
+>
+>\- 时间复杂度: *O(n)*
+
+``````java
+public List<Integer> partitionLabels(String s) {
+        List<Integer> ans = new ArrayList<>();
+        int[] hash = new int[26];
+        int len = s.length();
+        for(int i = 0; i < len; i++)
+            if(hash[s.charAt(i) - 'a'] == 0 && s.charAt(i) != s.charAt(0)) hash[s.charAt(i) - 'a'] = i;
+        int index = len - 1;
+        int piece = 1;
+        for(int i = len - 1; i >= 0;i--){
+            if(i == index && hash[s.charAt(i) - 'a'] == i) {
+                ans.add(piece);
+                index--;
+                piece = 1;
+            }else{
+                index = Math.min(index, hash[s.charAt(i) - 'a']);
+                piece++;
+            }
+        }
+        return ans.reversed();
+    }
+``````
+
+## 28.[覆盖所有点的最少矩形数目](https://leetcode.cn/problems/minimum-rectangles-to-cover-points/)（中等）
+
+> 排序+贪心
+>
+> 首先可以看题干，既然只统计矩形的个数，那就不必考虑矩形的高，既然无论如何都要花销一个矩形，那何不按照最宽取，这样还能包括尽可能多的点。
+>
+> 我们进行排序，将x点从小到大排序即可，每花费一个矩形，我们就把所有在这个矩形的点囊括进去，一旦出现不在这个矩形里的，就新增一个矩形即可
+>
+> lambda表达式：`(o1,o2)->(o1[0]-o2[0])`，意思是排序时按照数组的第一个元素大小排序
+>
+> + 第一次提交，sort部分`Arrays.sort(points, Comparator.comparingInt(o -> o[0]))`时间复杂度超越16.62%
+> + 第二次提交，改成`Arrays.sort(points, (o1,o2)->(o1[0]-o2[0]));，超越59%
+> + 第三次提交，把for-each语句`for(int[]arr : points)`改成下标索引的方式，超越93.40%
+>
+> 也不知道这样优化有没有意义，但是看着好看（doge）
+
+``````java
+public int minRectanglesToCoverPoints(int[][] points, int w) {
+        int ans = 0;
+        Arrays.sort(points, (o1,o2)->(o1[0]-o2[0]));
+        int index = points[0][0];
+        ans++;
+        int len = points.length;
+        for(int i = 0; i < len; i++){
+            if(points[i][0] > index + w){
+                index = points[i][0];
+                ans++;
+            }
+        }
+        return ans;
+    }
+``````
+
+## 29[找出分区值](https://leetcode.cn/problems/find-the-value-of-the-partition/)(中等)
+
+> 又是一道想出来规律就简单的题，不管怎么样，只要找到数组中a - b相差最小的差值，就是结果，因为比b小可以放在b左面，比a大可以放在a右面
+>
+> 排序即可
+>
+> 超越100%时间复杂度
+
+``````java
+public int findValueOfPartition(int[] nums) {
+        Arrays.sort(nums);
+        int len = nums.length;
+        int minNum = (int)1e9;
+        for(int i = 1; i < len; i++){
+            if(nums[i]-nums[i - 1] < minNum) minNum = nums[i]-nums[i - 1];
+            if(minNum == 0) return 0;
+        }
+        return minNum;
+    }
+``````
+
+## 30.[心算挑战](https://leetcode.cn/problems/uOAnQW/)(简单)
+
+> 排序＋贪心
+>
+> 其实看到题干要求，说数字范围0 到 1000，其实用哈希也行，1000很小了
+>
+> 先排序然后把最大的cnt个数字相加，还要把cnt个数字里最小的奇数和偶数挑出来，方便替换，用cnt里最小的数替换cards其他数字的最大值，这才是最贪的方案，如果和是奇数，那就把除了cnt个数的cards里的最大的奇数和偶数挑出来，看把cnt里的奇数替换成偶数代价小还是偶数换奇数代价小
+>
+> 需要考虑边界情况和特殊情况
+>
+> 例如[1,1,1,1,1] , cnt = 3就是特殊情况，没有可替换的偶数
+
+``````java
+public int maxmiumScore(int[] cards, int cnt) {
+        int ans = 0;
+        Arrays.sort(cards);
+        int len = cards.length;
+        int odd = 0;
+        int even = 0;
+        for(int i = len - cnt; i < len; i++){
+            if(even == 0 && cards[i] % 2 == 0) even =cards[i];
+            if(odd == 0 && cards[i]%2 == 1) odd = cards[i];
+            ans += cards[i];
+        }
+        if(ans % 2 == 1){
+            int even1 = 0;
+            int odd1 = 0;
+            for(int i = len - cnt - 1; i >= 0; i--){
+                if(even1 == 0 && cards[i] % 2 == 0)
+                    even1 = cards[i];
+                if(odd1 == 0 && cards[i] % 2 == 1)
+                    odd1 = cards[i];
+                if(even1 != 0 && odd1 != 0)
+                    break;
+            }
+            if((even == 0 && even1 == 0) || (even1 == 0 && odd1 == 0)||(even == 0 && odd == 0))
+                return 0;
+            else{
+                if(even == 0) ans += even1 - odd;
+                else ans += Math.max(odd1 - even ,even1 - odd);
+            }
+        }
+        return ans;
+    }
+``````
+
+## 31.[缺失的第一个正数](https://leetcode.cn/problems/first-missing-positive/)(困难)
+
+> 第一次秒困难题，时间复杂度超越100%
+>
+> \- 时间复杂度: *O(n)*
+>
+> \- 空间复杂度: *O(1)*
+>
+> 题干限制很多，时间复杂度o(n)，说明不让排序，不让暴力
+>
+> 空间复杂度o(1)，说明不让开辟新数组
+>
+> 我的方法是置换，例如[3,4,-1,1]，从头遍历，第一个数是3，就把`nums[3-1]`和第一个数置换，此时`nums[3-1]`已经正确，我之所以减一，是因为找最小正整数，然后再看换好的第一个数，是-1，此时≤0，或者大于数组长度的都不需要考虑，一律置0就好，至于为什么大于数组长度的数不考虑，因为肯定有比这个数小的正整数。
+>
+> 然后i++，以此类推，直到把所有数都归位，最后扫描一遍，如果哪个数不对位，就缺这个数。
+
+``````java
+public int firstMissingPositive(int[] nums) {
+        int len = nums.length;
+        int i = 0;
+        while(i < len){
+            if(nums[i] > len || nums[i] <= 0){
+                nums[i] = 0;
+                i++;
+            }else if(i + 1 == nums[i]){
+                i++;
+            }else{
+                if(nums[nums[i] - 1] == nums[i]) i++;
+                else{
+                    int temp = nums[nums[i] - 1];
+                    nums[nums[i] - 1] = nums[i];
+                    nums[i] = temp;
+                }
+            }
+        }
+        for(i = 0; i < len; i++){
+            if(nums[i] != i + 1) return i + 1;
+        }
+        return len + 1;
+    }
+``````
+
+
+
+## 32.[直角三角形](https://leetcode.cn/problems/right-triangles/)（中等）
+
+> 时间复杂度超过O(MN)就会超时
+>
+> 第一次遍历为了记录每行多少1和每列多少1
+>
+> 第二次遍历只需要找到直角三角形的直角即可，然后`(arrCol[j] - 1)*(arrRow[i] - 1)`即为这个直角顶点组成的三角形数目，相加即可
+
+``````java
+public long numberOfRightTriangles(int[][] grid) {
+        long ans = 0;
+        int hei = grid.length;
+        int wid = grid[0].length;
+        int[] arrRow = new int[hei];
+        int[] arrCol = new int[wid];
+        for(int i = 0; i < hei; i++)
+            for(int j = 0; j < wid; j++){
+                if(grid[i][j] == 1) {
+                    arrRow[i]++;
+                    arrCol[j]++;
+                }
+            }
+        for(int i = 0; i < hei; i++){
+            for (int j = 0; j < wid; j++){
+                if(grid[i][j] == 1){
+                    ans += (arrCol[j] - 1)*(arrRow[i] - 1);
+                }
+            }
+        }
+        return ans;
+    }
+``````
+
