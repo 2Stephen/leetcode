@@ -1149,3 +1149,41 @@ public long numberOfRightTriangles(int[][] grid) {
     }
 ``````
 
+## 33.[ 正方形中的最多点数](https://leetcode.cn/problems/maximum-points-inside-the-square/)(中等)
+
+> 做完题看官方题解，有个好听的名字，叫`维护次小半径`，我觉得就是贪心
+>
+> 有个概念叫切比雪夫距离：max(∣*x*∣,∣*y*∣)，不难理解0到points[i]的切比雪夫距离就是包括该点的最小正方形的二分之一边长，中心点固定在（0,0），所以就能画出正方形
+>
+> 题干说只有小写字母，我们该形成条件反射--哈希表，题干还说不重复，那正方形里最多有26个点
+>
+> 那我们就能想到，如果有两个a，那我们正方形的最大情况就是把切比雪夫距离大的那个a去掉，例如（1,1）和（4,4），那最大三角形四个边就是（±3，±3），因为如果比三还大，那就囊括（4,4）了，这就叫`次小半径`
+>
+> 有个坑，就是数组初始值是0，如果是(0,0)，那就毁了，这个点让我吃了一下罚时，所以我们得吧初始值设置成-1
+
+``````java
+public int getMax(int a,int b){
+        return Math.max(Math.abs(a),Math.abs(b));
+    }
+    public int maxPointsInsideSquare(int[][] points, String s) {
+        int[] hash = new int[26];
+        Arrays.fill(hash,-1);
+        int len = s.length();
+        int maxNum = (int)1e9;
+        int ans = 0;
+        for(int i = 0; i < len; i++){
+            int temp = getMax(points[i][0],points[i][1]);
+            if(hash[s.charAt(i) - 'a'] != -1){
+                maxNum = Math.min(maxNum,Math.max(temp,hash[s.charAt(i) - 'a']) - 1);
+                hash[s.charAt(i) - 'a'] = Math.min(temp,hash[s.charAt(i) - 'a']);
+            }else{
+                hash[s.charAt(i) - 'a'] = temp;
+            }
+        }
+        for(int i = 0; i < 26; i++){
+            if(hash[i] <= maxNum && hash[i] != -1) ans++;
+        }
+        return ans;
+    }
+``````
+
