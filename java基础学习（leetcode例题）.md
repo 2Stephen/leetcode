@@ -1187,3 +1187,137 @@ public int getMax(int a,int b){
     }
 ``````
 
+## 34.[二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)（简单，热题100）
+
+> 用队列实现层序遍历（广度优先搜索，BFS）我是利用空指针代表分层
+>
+> 示例1队列表示：3、null、9、20、null、15、7
+>
+> 显然用几个null分隔就几层
+>
+> Java的队列要用`LinkedList<>()`初始化
+>
+> `add`向队尾加入元素
+>
+> `remove`将队头元素删除，并返回队头元素
+>
+> `peek`返回队头元素
+
+``````java
+public int maxDepth(TreeNode root) {
+        int ans = 1;
+        Queue<TreeNode>que = new LinkedList<>();
+        que.add(root);
+        if(root == null) return 0;
+        boolean flag = true;
+        while(flag){
+            que.add(null);
+            flag = false;
+            while (que.peek() != null){
+                TreeNode temp = que.remove();
+                if(temp.left != null) {
+                    que.add(temp.left);
+                    flag = true;
+                }
+                if(temp.right != null) {
+                    que.add(temp.right);
+                    flag = true;
+                }
+            }
+            if(flag) ans++;
+            que.remove();
+        }
+        return ans;
+    }
+``````
+
+## 35.[相交链表](https://leetcode.cn/problems/intersection-of-two-linked-lists/)(简单，热题100)
+
+> 思考，有相交是什么情况，A和B从等长位置开始遍历，例如lenA = 5，lenB = 6，那从A = 0，B = 1的位置开始遍历即可，这样才会有可能相遇
+>
+> 至于为什么从等长位置遍历，我的思路是：从后往前推，但是这是单向链表，所以排除掉从后往前推的可能，那我们就从短链表的最开始遍历即可，因为超出短短链表的部分肯定不会有重合
+>
+> \- 时间复杂度: *O(m + n)*
+>
+> \- 空间复杂度: *O(1)*
+
+``````java
+ public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        int lenA = 0,lenB = 0;
+        ListNode tempA = headA,tempB = headB;
+        while(tempA != null){
+            tempA = tempA.next;
+            lenA++;
+        }
+        while(tempB != null){
+            tempB = tempB.next;
+            lenB++;
+        }
+        tempA = headA;
+        tempB = headB;
+        while(lenA > lenB){
+            tempA = tempA.next;
+            lenA--;
+        }
+        while(lenB > lenA){
+            tempB = tempB.next;
+            lenB--;
+        }
+        while(tempB != tempA){
+            tempB = tempB.next;
+            tempA = tempA.next;
+        }
+        return tempA;
+    }
+``````
+
+## 36[反转链表](https://leetcode.cn/problems/reverse-linked-list/)(简单，热题100)
+
+> 经典数据结构基础题，java对类的引用是地址引用，也就是修改`ListNode ans`的字段值之后，之前在别处引用的`temp = ans`的temp字段也会改变,这点我觉得不如c语言清晰（虽然指针很繁琐）
+
+``````java
+public ListNode reverseList(ListNode head) {
+        if(head == null) return head;
+        ListNode ans = head,temp = head.next;
+        ans.next = null;
+        while(temp != null){
+            ListNode temp1 = ans;
+            ListNode temp2 = temp.next;
+            ans = temp;
+            temp.next = temp1;
+            temp = temp2;
+        }
+        return ans;
+    }
+``````
+
+## 37.[不相交的线](https://leetcode.cn/problems/uncrossed-lines/)(中等)
+
+> 经典动态规划，nums1的第i位和nums2的第j位进行比较时候，要么取nums1前i-1位和nums2前j位的最优解，要么取nums1前i位和nums2前j-1位的最优解，要么取nums1前i -1位和nums2前j-1位加上i,j本位的最优解
+>
+> 状态转移方程：
+
+$$
+dp[i][j] = 
+ \begin{cases}
+ dp[i-1][j-1] + 1,\,\,nums1[i] == nums2[j]\\
+ MAX(dp[i-1][j],dp[i][j-1]),\,\,nums1[i] != nums2[j]\\
+ \end{cases}
+$$
+
+``````java
+public int maxUncrossedLines(int[] nums1, int[] nums2) {
+        int len1 = nums1.length;
+        int len2 = nums2.length;
+        int[][] dp = new int[len1 + 1][len2 + 1];
+        for(int i = 0; i < len1; i++){
+            for(int j = 0; j < len2; j++){
+                int temp = 0;
+                if(nums1[i] == nums2[j]) temp = 1;
+                dp[i + 1][j + 1] = Math.max(Math.max(dp[i][j + 1], dp[i + 1][j]) ,dp[i][j] + temp);
+            }
+        }
+        return dp[len1][len2];
+    }
+``````
+
