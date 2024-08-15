@@ -1,6 +1,6 @@
 [TOC]
 
-# java基础学习（leetcode例题）
+# java学习（leetcode例题）
 
 ## 一.[3099. 哈沙德数](https://leetcode.cn/problems/harshad-number/)(简单)
 
