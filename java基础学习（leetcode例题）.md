@@ -1321,3 +1321,262 @@ public int maxUncrossedLines(int[] nums1, int[] nums2) {
     }
 ``````
 
+## 38.[实现一个魔法字典](https://leetcode.cn/problems/implement-magic-dictionary/)（中等）
+
+> 为什么java暴力解法时间复杂度会超过100%，而优化的解法反而更慢
+>
+> 判断两个字符串长度是否相等，相等则判断有几个不同，有超过一个不同就不匹配，要是只有一个不同就返回true即可
+
+``````java
+class MagicDictionary {
+
+    String[] dict;
+
+    public MagicDictionary() {
+    }
+
+    public void buildDict(String[] dictionary) {
+        this.dict = dictionary;
+    }
+
+    public boolean search(String searchWord) {
+        for(String s:dict){
+            if(s.length() == searchWord.length()){
+                int cnt = 0;
+                for(int i = 0; i < s.length(); i++){
+                    if(s.charAt(i) != searchWord.charAt(i)) cnt++;
+                    if(cnt > 1) break;
+                }
+                if(cnt == 1) return true;
+            }
+        }
+        return false;
+    }
+}
+
+``````
+
+## 39.[实现 Trie (前缀树)](https://leetcode.cn/problems/implement-trie-prefix-tree/)（中等）
+
+> 上面的题暴力做的有点心虚，补一道字典树的题，字典树是一个冷门的概念，难倒不难，就是多叉树的变形，但是没听过这个概念会懵。
+>
+> 每个结点有27个地址，0到25代表字母，存储下一个指向，26代表是否截止，例如`abc`，node.next[0]指向新的node，新node.next[1]指向另一个新的node，以此类推，直到最后，c字母指向一个新的node，这个新的node只有第26位有指向，也就是`temp.next[26] = new Node();`这样就能判断是否截止
+>
+> 判断前缀还是完全包含只需要判断是不是在遍历完word后面就截止了
+
+``````java
+class Node{
+    Node[] next;
+    Node(){
+        next = new Node[27];
+    }
+}
+class Trie {
+    Node root;
+    public Trie() {
+        root = new Node();
+    }
+
+    public void insert(String word) {
+        int len = word.length();
+        Node temp = root;
+        for(int i = 0; i < len; i++){
+            if(temp.next[word.charAt(i) - 'a'] == null){
+                temp.next[word.charAt(i) - 'a'] = new Node();
+            }
+            temp = temp.next[word.charAt(i) - 'a'];
+        }
+        temp.next[26] = new Node();
+    }
+
+    public boolean search(String word) {
+        Node temp = root;
+        int len = word.length();
+        for(int i = 0; i < len; i++){
+            if(temp.next[word.charAt(i) - 'a'] == null) return false;
+            temp = temp.next[word.charAt(i) - 'a'];
+        }
+        if(temp.next[26] == null) return false;
+        return true;
+    }
+
+    public boolean startsWith(String prefix) {
+        Node temp = root;
+        int len = prefix.length();
+        for(int i = 0; i < len; i++){
+            if(temp.next[prefix.charAt(i) - 'a'] == null) return false;
+            temp = temp.next[prefix.charAt(i) - 'a'];
+        }
+        return true;
+    }
+}
+``````
+
+## 40.[岛屿数量](https://leetcode.cn/problems/number-of-islands/)(中等，热题100)
+
+> DFS，用栈记录一个岛屿中为陆地的下标，如示例1：
+>
+> ```java
+> 输入：grid = [
+>   ["1","1","1","1","0"],
+>   ["1","1","0","1","0"],
+>   ["1","1","0","0","0"],
+>   ["0","0","0","0","0"]
+> ]
+> 输出：1
+> ```
+>
+> 从（0，0）开始，这个位置是1，那相邻的上下左右有1就证明和他是一个岛屿，入栈，然后一个个出栈，出栈的元素周围如果有1则接着入栈，直到栈从有元素到空，则是一个岛屿
+
+``````java
+public int numIslands(char[][] grid) {
+        int cnt = 0;
+        int hei = grid.length;
+        int wid = grid[0].length;
+        for(int i = 0; i < hei; i++){
+            for(int j = 0; j < wid; j++){
+                if(grid[i][j] == '1'){
+                    cnt++;
+                    Stack<int[]> stk = new Stack<>();
+                    int[] temp = new int[]{i , j};
+                    stk.push(temp);
+                    while(!stk.isEmpty()){
+                        grid[temp[0]][temp[1]] = '0';
+                        if(temp[0] > 0 && grid[temp[0] - 1][temp[1]] == '1') stk.push(new int[]{temp[0] - 1, temp[1]});
+                        if(temp[1] > 0 && grid[temp[0]][temp[1] - 1] == '1') stk.push(new int[]{temp[0], temp[1] - 1});
+                        if(temp[0] < hei - 1 && grid[temp[0] + 1][temp[1]] == '1') stk.push(new int[]{temp[0] + 1, temp[1]});
+                        if(temp[1] < wid - 1 && grid[temp[0]][temp[1] + 1] == '1') stk.push(new int[]{temp[0], temp[1] + 1});
+                        temp = stk.pop();
+                    }
+                }
+            }
+        }
+        return cnt;
+    }
+``````
+
+## 41.[螺旋矩阵](https://leetcode.cn/problems/spiral-matrix/)（中等，热题100）
+
+> 这没什么好说的，就是下标别记错了就行
+>
+> direct记录方向， (int)direct/4作为遍历限制，因为除了第一圈，其余圈都不能遍历到最边缘，不然就错了
+>
+> `for(;y < col - temp; y++,i++) ans.add(matrix[x][y]);`后面进行`y--`是因为for循环会把y自增到`y = col - temp`，下一次执行时候会越界
+
+``````java
+ public List<Integer> spiralOrder(int[][] matrix) {
+        List<Integer> ans = new ArrayList<>();
+        int direct = 0;     //direct % 4 == 0 is to right, 1 is to down, 2 is to left ...
+        int i = 0, len = matrix.length * matrix[0].length;
+        int row = matrix.length;
+        int col = matrix[0].length;
+        int x = 0, y = 0;
+        while(i < len){
+            int temp = (direct + 1) / 4;
+            if(direct % 4 == 0){
+                for(;y < col - temp; y++,i++) ans.add(matrix[x][y]);
+                y--;
+                x++;
+            } else if (direct % 4 == 1) {
+                for(;x < row - temp; x++,i++) ans.add(matrix[x][y]);
+                x--;
+                y--;
+            }else if (direct % 4 == 2) {
+                for(;y >= 0 + temp; y--,i++) ans.add(matrix[x][y]);
+                y++;
+                x--;
+            }else {
+                for(;x >= 0 + temp; x--,i++) ans.add(matrix[x][y]);
+                x++;
+                y++;
+            }
+            direct++;
+        }
+        return ans;
+    }
+``````
+
+## 42. [特殊数组 I](https://leetcode.cn/problems/special-array-i/)(简单)
+
+> 这每日一题没什么说的，判断i和i-1的元素奇偶性是否相等即可
+
+``````java
+ public boolean isArraySpecial(int[] nums) {
+        int len =nums.length;
+        for(int i = 1; i < len; i++){
+            if(nums[i] % 2 == nums[i - 1] % 2) return false;
+        }
+        return true;
+    }
+``````
+
+## 43.[最小路径和](https://leetcode.cn/problems/minimum-path-sum/)(中等，面试经典150)
+
+> 经典二维动态规划
+>
+> 状态转移方程：
+> $$
+> dp[i][j] = 
+> dp[i][j] + min(dp[i - 1][j], dp[i][j - 1])
+> $$
+> 我们看[[1,3],[1,5]]这个数组，移动到（0,1）是不是只能是1+3，那我们可以把（0,1）位置记录为1+3即4
+>
+> 移动到（1,0）只能是1+1，把（1,0）记录为2
+>
+> 移动到（1,1）要么是（1,0）->（1,1），要么是（0,1）->（1,1），那我们取最小值即可，为2 + 5 = 7，即答案
+
+``````java
+public int minPathSum(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        for(int i = 1; i < n; i++) grid[0][i] += grid[0][i - 1];
+        for(int i = 1; i < m; i++) grid[i][0] += grid[i - 1][0];
+        for(int i = 1; i < m; i++)
+            for(int j = 1; j < n; j++){
+                grid[i][j] += Math.min(grid[i - 1][j], grid[i][j - 1]);
+            }
+        return grid[m - 1][n - 1];
+    }
+``````
+
+## 44.[矩阵中的最大得分](https://leetcode.cn/problems/maximum-difference-score-in-a-grid/)(中等)
+
+> 不要把这道题想的太复杂，这步那步的
+>
+> 思考：4 -> 12 和4 -> 8 -> 12和4 -> 1000000 ->12的结果是不是一样，答案是一样，所以我们只需在数组中找出俩数，第二个数在第一个数的右 or 下，第二个数减第一个数得到的答案最大，就ok了
+>
+> 还是二维dp（动态规划），状态转移方程：
+> $$
+> dp[i][j] = 
+> min(dp[i - 1][j], dp[i][j - 1])
+> $$
+> 我们在状态转移时候得先维护ans，即先`ans = max(ans, dp[i][j] - temp);`其中temp就是上面状态转移方程的值
+>
+> 我们需要知道每次状态转移的意义，`dp[i][j]`的意义是前i行j列的矩阵的最小值是`dp[i][j]`
+>
+> 我做时候懒得把List换成数组了，结果写一半搞得我要累死，什么get什么set的好麻烦的
+
+`````java
+public int maxScore(List<List<Integer>> grid) {
+        int ans = (int)(-1e9);
+        int m = grid.size();
+        int n = grid.get(0).size();
+        for(int i = 1; i < n; i++){
+            ans = Math.max(ans, grid.get(0).get(i) - grid.get(0).get(i - 1));
+            grid.get(0).set(i, Math.min(grid.get(0).get(i), grid.get(0).get(i - 1)));
+        }
+        for(int i = 1; i < m; i++){
+            ans = Math.max(ans, grid.get(i).get(0) - grid.get(i - 1).get(0));
+            grid.get(i).set(0, Math.min(grid.get(i).get(0), grid.get(i - 1).get(0)));
+        }
+        for(int i = 1; i < m; i++){
+            for(int j = 1; j < n; j++){
+                int temp = Math.min(grid.get(i).get(j - 1), grid.get(i - 1).get(j));
+                ans = Math.max(ans, grid.get(i).get(j) - temp);
+                grid.get(i).set(j, Math.min(temp, grid.get(i).get(j)));
+            }
+        }
+        return ans;
+    }
+`````
+
