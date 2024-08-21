@@ -1580,3 +1580,376 @@ public int maxScore(List<List<Integer>> grid) {
     }
 `````
 
+## 45.[旋转链表](https://leetcode.cn/problems/rotate-list/)(中等)
+
+> 其实这道题简单来说，就有以下几个步骤：
+>
+> 首尾连接
+>
+> 找第n - k个元素作为新链表的头，第n - k - 1个元素作为尾
+>
+> 断开n - k - 1 和n - k
+
+``````java
+class Solution {
+    public ListNode rotateRight(ListNode head, int k) {
+        ListNode temp = head;
+        int len = 1;
+        if(head == null) return head;
+        while(temp.next != null){
+            len++;
+            temp = temp.next;
+        }
+        temp.next = head;
+        k %= len;
+        temp = head;
+        for(int i = 1; i < len - k; i++){
+            temp = temp.next;
+        }
+        head = temp.next;
+        temp.next = null;
+        return head;
+    }
+}
+``````
+
+## 46.[从前序与中序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)（中等）
+
+> 经典的数据结构习题，在中序遍历里先序遍历的第一个元素，元素左面即为左子树，右面即为右子树，进行递归查找即可
+
+`````java
+class Solution {
+    public TreeNode toTree(int[] preorder, int preStart, int preEnd, int[] inorder, int inStart, int inEnd) {
+        if (preStart >= preEnd || inStart >= inEnd)
+            return null;
+        
+        TreeNode root = new TreeNode(preorder[preStart]);
+
+        int inRootIndex = 0;
+        for (int i = inStart; i < inEnd; i++) {
+            if (inorder[i] == root.val) {
+                inRootIndex = i;
+                break;
+            }
+        }
+
+        int leftSize = inRootIndex - inStart;
+
+        root.left = toTree(preorder, preStart + 1, preStart + 1 + leftSize, inorder, inStart, inRootIndex);
+        root.right = toTree(preorder, preStart + 1 + leftSize, preEnd, inorder, inRootIndex + 1, inEnd);
+
+        return root;
+    }
+
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        return toTree(preorder, 0, preorder.length, inorder, 0, inorder.length);
+    }
+}
+
+`````
+
+## 47.[ 添加与搜索单词 - 数据结构设计](https://leetcode.cn/problems/design-add-and-search-words-data-structure/)（中等）
+
+> 这个利用了前面的*前缀树*的概念，把单词拆分成26叉树即可，模糊搜索利用深度优先搜索，找到一个符合的即可返回true
+
+``````java
+class WordDictionary {
+    class Node{
+        boolean isEnd;
+        Node[] next;
+        Node(){
+            isEnd = false;
+            next = new Node[26];
+        }
+    }
+    Node root;
+    public WordDictionary() {
+        root = new Node();
+    }
+
+    public void addWord(String word) {
+        Node curr = root;
+        for(char c:word.toCharArray()){
+            if(curr.next[c-'a']==null)
+                curr.next[c-'a']=new Node();
+            curr = curr.next[c-'a'];
+        }
+        curr.isEnd = true;
+    }
+    public boolean dfs(Node root, StringBuilder subStr){
+        for(int i = 0; i < subStr.length(); i++){
+            if(subStr.charAt(i) == '.'){
+                for(int j = 0; j < 26; j++){
+                    if(root.next[j] != null) {
+                        if(dfs(root.next[j], new StringBuilder(subStr.substring(i + 1)))) return true;
+                    }
+                }
+                return false;
+            }
+            else {
+                if(root.next[subStr.charAt(i) - 'a'] == null) return false;
+                root = root.next[subStr.charAt(i) - 'a'];
+            }
+        }
+        return root.isEnd;
+
+    }
+    public boolean search(String word) {
+        Node curr = root;
+        StringBuilder sb = new StringBuilder(word);
+        return dfs(curr, sb);
+    }
+}
+``````
+
+## 48.[反转字符串中的单词](https://leetcode.cn/problems/reverse-words-in-a-string/)(中等)
+
+> 经典的栈操作的题目
+>
+> step1：拆分单词
+>
+> step2：入栈
+>
+> step3：出栈，中间加空格
+
+```````java
+class Solution {
+    public String reverseWords(String s) {
+        Stack<StringBuilder> stk = new Stack<>();
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < s.length(); i++){
+            if(s.charAt(i) == ' ' && sb.length() > 0){
+                stk.push(sb);
+                sb = new StringBuilder();
+            } else if(s.charAt(i) != ' '){
+                sb.append(s.charAt(i));
+            }
+        }
+        if(sb.length() > 0){
+            stk.push(sb);
+        }
+        StringBuilder res = new StringBuilder();
+        while(!stk.isEmpty()){
+            res.append(stk.pop());
+            if(!stk.isEmpty()){
+                res.append(" ");
+            }
+        }
+        return res.toString();
+    }
+}
+```````
+
+## 49.[K 周期字符串需要的最少操作次数](https://leetcode.cn/problems/minimum-number-of-operations-to-make-word-k-periodic/)（中等）
+
+> 哈希表
+>
+> 把word划分成len/k个单位，判断最大的相等的单位是多少
+>
+> 例如：leetcodeleet，k=4，我们可以分成leet // code // leet即可，最大两个相同，我们只需要把中间的这个单位换成leet即可，返回1
+
+``````java
+class Solution {
+    public int minimumOperationsToMakeKPeriodic(String word, int k) {
+        HashMap<String, Integer>hashMap = new HashMap<>();
+        for(int i = 0; i < word.length(); i += k){
+            String sub = word.substring(i, i + k);
+            hashMap.put(sub, hashMap.getOrDefault(sub, 0) + 1);
+        }
+        int maxNum = 0;
+        for(Map.Entry<String, Integer> map:hashMap.entrySet()){
+            maxNum = Math.max(maxNum, map.getValue());
+        }
+        return word.length() / k - maxNum;
+    }
+}
+``````
+
+## 50.[翻转二叉树](https://leetcode.cn/problems/invert-binary-tree/)（简单）
+
+> 深度优先搜索，然后把左子树和右子树交换即可
+
+`````java
+class Solution {
+    public void dfs(TreeNode root){
+        if(root == null) return;
+        TreeNode temp = root.left;
+        root.left = root.right;
+        root.right = temp;
+        dfs(root.left);
+        dfs(root.right);
+    }
+    public TreeNode invertTree(TreeNode root) {
+        dfs(root);
+        return root;
+    }
+}
+`````
+
+## 51.[被围绕的区域](https://leetcode.cn/problems/surrounded-regions/)（中等）
+
+> 换个思路，其实只需要遍历边缘的格子，然后如果有O就对其进行广度/深度优先搜索，然后把旁边“被感染的”相邻点一同标记，最后没被标记的O就是被围绕的区域
+
+``````java
+class Solution {
+    public void findEdge(char[][] board, int i, int j){
+        int m = board.length;
+        int n = board[0].length;
+        Stack<int[]>stack = new Stack<>();
+        stack.push(new int[]{i, j});
+        while (stack.size() != 0) {
+            int[] temp = stack.pop();
+            board[temp[0]][temp[1]] = 'Y';
+            if(temp[0] - 1 >= 0 && board[temp[0] - 1][temp[1]] == 'O') stack.push(new int[]{temp[0] - 1, temp[1]});
+            if(temp[0] + 1 < m && board[temp[0] + 1][temp[1]] == 'O') stack.push(new int[]{temp[0] + 1, temp[1]});
+            if(temp[1] - 1 >= 0 && board[temp[0]][temp[1] - 1] == 'O') stack.push(new int[]{temp[0], temp[1] - 1});
+            if(temp[1] + 1 < n && board[temp[0]][temp[1] + 1] == 'O') stack.push(new int[]{temp[0], temp[1] + 1});
+        }
+    }
+    public void solve(char[][] board) {
+        int m = board.length;
+        int n = board[0].length;
+        for(int i = 0; i < m; i++){
+            if(i == 0 || i == m - 1){
+                for(int j = 1; j < n - 1; j++){
+                    if(board[i][j] == 'O') {
+                        findEdge(board, i, j);
+                    }
+                }
+            }
+            if(board[i][0] == 'O') {
+                findEdge(board, i, 0);
+            }
+            if(board[i][n - 1] == 'O'){
+                findEdge(board, i, n - 1);
+            }
+        }
+        for(int i = 0; i < m; i++)
+            for (int j = 0; j < n; j++){
+                if(board[i][j] == 'Y') board[i][j] = 'O';
+                else board[i][j] = 'X';
+            }
+    }
+}
+``````
+
+## 52.[学生出勤记录 I](https://leetcode.cn/problems/student-attendance-record-i/)(简单)
+
+>统计A的个数，以及是否有三个相邻的L即可
+
+``````java
+class Solution {
+    public boolean checkRecord(String s) {
+        int cntA = 0;
+        int cntL = 0;
+        for(int i = 0; i < s.length(); i++){
+            if(s.charAt(i) == 'A') cntA++;
+            if(s.charAt(i) == 'L') cntL++;
+            else cntL = 0;
+            if(cntA >= 2 || cntL >= 3) return false;
+        }
+        return true;
+    }
+}
+``````
+
+## 53.[同构字符串](https://leetcode.cn/problems/isomorphic-strings/)（简单）
+
+> 这道题不属于一眼就能看得出来的简单题，而是需要思考，最开始我只用了一个哈希表，进行一一匹配，但是我发现不对，如果是add 和 dcc，也是同构，但是a和d匹配了，后面d和c又匹配了
+>
+> 所以我们要用两个哈希表，完美解决
+
+`````java
+class Solution {
+    public boolean isIsomorphic(String s, String t) {
+        int[] hash = new int[128];
+        int[] hash1 = new int[128];
+        int m = s.length();
+        for(int i = 0; i < m; i++){
+            if(hash[s.charAt(i)] == 0) {
+                hash[s.charAt(i)] = t.charAt(i);
+            }
+            else if(hash[s.charAt(i)] != t.charAt(i)) return false;
+            if(hash1[t.charAt(i)] == 0) {
+                hash1[t.charAt(i)] = s.charAt(i);
+            }
+            else if(hash1[t.charAt(i)] != s.charAt(i)) return false;
+        }
+        return true;
+    }
+}
+`````
+
+## 54.[罗马数字转整数](https://leetcode.cn/problems/roman-to-integer/)(简单)
+
+> 这是我第二次做这个题，第一次用c++做的，写的很乱，当时刚学着做算法题，第二次看就清晰许多了，字符对应的数字如果是递减的，那就一一相加，但是如果有一个比后面的小，那就考虑
+>
+> `````
+> I 可以放在 V (5) 和 X (10) 的左边，来表示 4 和 9。
+> X 可以放在 L (50) 和 C (100) 的左边，来表示 40 和 90。 
+> C 可以放在 D (500) 和 M (1000) 的左边，来表示 400 和 900。
+> `````
+
+``````java
+class Solution {
+    public int romanToInt(String s) {
+        int[] num = new int[26];
+        num['I' - 'A'] = 1;
+        num['V' - 'A'] = 5;
+        num['X' - 'A'] = 10;
+        num['L' - 'A'] = 50;
+        num['C' - 'A'] = 100;
+        num['D' - 'A'] = 500;
+        num['M' - 'A'] = 1000;
+        int len = s.length();
+        int ans = 0;
+        for(int i = 0; i < len - 1; i++){
+            if(num[s.charAt(i) - 'A'] < num[s.charAt(i + 1) - 'A']) 
+                ans -= num[s.charAt(i) - 'A'];
+            else ans += num[s.charAt(i) - 'A'];
+        }
+        return ans + num[s.charAt(len -  1) - 'A'];
+        
+    }
+}
+``````
+
+## 55.[整数转罗马数字](https://leetcode.cn/problems/integer-to-roman/)（中等）
+
+> 上一题的反推即可，看千位、百位、十位、个位数，然后挨个表示即可
+
+``````java
+class Solution {
+    public String intToRoman(int num) {
+        char[][] map = new char[4][];
+        map[0] = new char[]{'I','V'};
+        map[1] = new char[]{'X','L'};
+        map[2] = new char[]{'C','D'};
+        map[3] = new char[]{'M'};
+
+
+        StringBuilder sb = new StringBuilder();
+        for(int i = 3; i >= 0; i--){
+            int cur = (int) (num / Math.pow(10,i)) % 10;
+            if(cur > 0){
+                if(cur <= 3){
+                    for(int j = 0; j < cur; j++) sb.append(map[i][0]);
+                }else if(cur == 4){
+                    sb.append(map[i][0]);
+                    sb.append(map[i][1]);
+                }else if(cur <= 8){
+                    sb.append(map[i][1]);
+                    for(int j = 5; j < cur; j++) sb.append(map[i][0]);
+                }else{
+                    sb.append(map[i][0]);
+                    sb.append(map[i + 1][0]);
+                }
+            }
+        }
+        return sb.toString();
+    }
+}
+``````
+
+
+
