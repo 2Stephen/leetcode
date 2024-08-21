@@ -1951,5 +1951,42 @@ class Solution {
 }
 ``````
 
+## 56.[数组最后一个元素的最小值](https://leetcode.cn/problems/minimum-array-end/)（中等）
+
+> 今天的每日一题有点意思，如果看到题目想到遍历，那肯定就超时了，因为数太大了，我们只能找规律，然后在笔记上乱涂乱画，发现，n-1的二进制只需要插入k的非1位置即可例如n = 3，即11，k = 4，即100，把11填在k的非1 位置，即：1 11，即为答案
+
+`````java
+class Solution {
+    public StringBuilder DecimalToBinary(int x){
+        StringBuilder sb = new StringBuilder();
+        while (x != 0){
+            sb.append(x % 2);
+            x /= 2;
+        }
+        return sb;
+    }
+    public long minEnd(int n, int x) {
+        StringBuilder sbN = DecimalToBinary(n - 1);
+        StringBuilder sbX = DecimalToBinary(x);
+        int j = 0;
+        for(int i = 0; i < sbX.length(); i++){
+            if(j == sbN.length()) break;
+            if(sbX.charAt(i) == '0'){
+                sbX.setCharAt(i, sbN.charAt(j));
+                j++;
+            }
+        }
+        for(; j < sbN.length(); j++){
+            sbX.append(sbN.charAt(j));
+        }
+        long ans = 0;
+        for(int k = 0; k < sbX.length(); k++){
+            ans += (long) ((sbX.charAt(k) - '0')*Math.pow(2,k));
+        }
+        return ans;
+    }
+}
+`````
+
 
 
