@@ -1988,5 +1988,259 @@ class Solution {
 }
 `````
 
+## 57.[两个字符串的排列差](https://leetcode.cn/problems/permutation-difference-between-two-strings/)（简单）
 
+>用一个数组存储字符在s中的位置
+>
+>然后遍历t，累加位置之差的绝对值
+
+````java
+class Solution {
+    public int findPermutationDifference(String s, String t) {
+        int[] pos = new int[26];
+        int len = s.length();
+        int ans = 0;
+        for(int i = 0; i < len; i++){
+            pos[s.charAt(i) - 'a'] = i;
+        }
+        for(int i = 0; i < len; i++){
+            ans += Math.abs(pos[t.charAt(i) - 'a'] - i);
+        }
+        return ans;
+    }
+}
+````
+
+## 58.[员工的重要性](https://leetcode.cn/problems/employee-importance/)（中等）
+
+> leetcode崩了几天，这几天十分空虚，因为刷刷leetcode还能玩的心安理得一点，但是没leetcode刷就玩的很焦虑
+>
+> 哈希表 + 队列
+>
+> 哈希表以id为key存储，队列用来广度优先搜索（BFS），逐层员工向下搜索
+>
+> 因为数据量很小，我就直接哈希两千个位置，但是不建议，还是用HashMap更好一点
+
+```java
+public class Solution {
+    public int getImportance(List<Employee> employees, int id) {
+        Employee[] hash = new Employee[2000];
+        for(Employee employee:employees){
+            hash[employee.id - 1] = employee;
+        }
+        int ans = 0;
+        Queue<Integer> queue = new LinkedList<>();
+        queue.add(id);
+        while (!queue.isEmpty()){
+            int curr = queue.poll();
+            ans += hash[curr - 1].importance;
+            for(Integer subordinate: hash[curr - 1].subordinates){
+                queue.add(subordinate);
+            }
+        }
+        return ans;
+    }
+}
+```
+
+## 59.[合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/)（简单）
+
+> 没什么难的，主要是基本数据结构的巩固，链表问题
+>
+> 感觉大部分链表问题都是双指针问题，因为在c/c++里用指针指向链表，因为链表的特殊性，只能用指针访问，不能像数组一样随机存取
+
+```java
+class Solution {
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        if (list1 == null) return list2;
+        if (list2 == null) return list1;
+        ListNode ans = new ListNode(0);
+        ListNode temp = ans;
+        while (list1 != null && list2 != null) {
+            if (list1.val < list2.val) {
+                temp.next = list1;
+                list1 = list1.next;
+            } else {
+                temp.next = list2;
+                list2 = list2.next;
+            }
+            temp = temp.next;
+        }
+        temp.next = list1 != null ? list1 : list2;
+        return ans.next;
+    }
+}
+```
+
+## 60. [位1的个数](https://leetcode.cn/problems/number-of-1-bits/)(简单)
+
+> 这个涉及计算机基础知识，二进制和十进制转换，5转换二进制，首先5/2 = 2 余1
+>
+> 余数存起来：1，然后结果2/2 = 1 余 0，此时余数1和0，1/2 = 0 余 1，此时余数101
+>
+> 因为结果是0了，就不用再除了，然后把余数101调换过来，就是101,5的二进制（这个例子不太好。。。调过来和没调一样）
+
+```java
+class Solution {
+    public int hammingWeight(int n) {
+        int ans = 0;
+        while(n != 0){
+            if(n % 2 == 1) ans++;
+            n /= 2;
+        }
+        return ans;
+    }
+}
+```
+
+## 61.[旋转图像](https://leetcode.cn/problems/rotate-image/)(中等)
+
+> 我是一圈一圈处理的，先处理外圈，一圈只需要遍历某一行就行，然后四个点进行旋转
+>
+> 非常考验耐心，需要找好下标，不然就g了
+
+```java
+class Solution {
+    public void circle(int[][] matrix, int n){
+        int len = matrix.length - n * 2;
+        for(int i = 0; i < len - 1; i++){
+            int temp = matrix[n + i][len + n - 1];
+            matrix[n + i][len + n - 1] = matrix[n][n + i];
+            matrix[n][n + i] = matrix[n + len - 1 -i][n];
+            matrix[n + len - 1 -i][n] = matrix[n + len - 1][n + len - 1 - i];
+            matrix[n + len - 1][n + len - 1 - i] = temp;
+        }
+    }
+    public void rotate(int[][] matrix) {
+        for(int i = 0; i < matrix.length / 2; i++){
+            circle(matrix, i);
+        }
+    }
+}
+```
+
+## 62. [单词规律](https://leetcode.cn/problems/word-pattern/)（简单）
+
+> 哈希表问题，看着很简单，一一对应即可，但是还是有点小坑的，需要严格判断value是否重复
+>
+> 不然像abba -- cat cat cat cat，运行时候把a对应了cat，然后b的位置没东西，就把b的位置对应cat了，然后返回true了，其实是false，需要判断之前的value是否有"cat"，不能只判断key
+
+```java
+class Solution {
+    public boolean wordPattern(String pattern, String s) {
+        HashMap<Character,String>hashMap = new HashMap<>();
+        int j = 0;
+        for(int i = 0; i < pattern.length(); i++){
+            if(j > s.length()) return false;
+            int k = s.indexOf(' ', j + 1);
+            if(k == -1) k = s.length();
+            String temp = s.substring(j, k);
+            j = k + 1;
+            if(!hashMap.containsKey(pattern.charAt(i)) && !hashMap.containsValue(temp))  hashMap.put(pattern.charAt(i),temp);
+            else {
+                if(!temp.equals(hashMap.get(pattern.charAt(i)))) return false;
+            }
+        }
+        if(j < s.length()) return false;
+        return true;
+    }
+}
+```
+
+## 63. [生命游戏](https://leetcode.cn/problems/game-of-life/)(中等)
+
+> 题干要求用原地算法解决，我突发奇想，不只是用0 和 1，把2，3，4，5也加上，
+>
+> 2和4表示原来就是死的，3和5表示原来就是活的，2和3表示现在是死的，4和5表示现在是活的，这样就完美解决了
+>
+> 只要判断周围数字mod2 == 1，那这个数原来就是活的
+
+```java
+class Solution {
+    public void gameOfLife(int[][] board) {
+        //2：原死 3：原活 -- 现死
+        //4：原死 5：原活 -- 现活
+        int m = board.length;
+        int n = board[0].length;
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                int le = i == 0 ? 0 : i - 1;
+                int ri = i + 1 == m ? m - 1 : i + 1;
+                int top = j == 0 ? 0 : j - 1;
+                int bot = j + 1 == n ? n - 1 : j + 1;
+                int cnt = 0;
+                for(int x = le; x <= ri; x++)
+                    for(int y = top; y <= bot; y++){
+                        if(board[x][y] % 2 == 1) cnt++;
+                    }
+                cnt -= board[i][j];
+                if(board[i][j] == 1){
+                    if(cnt == 2 || cnt == 3) board[i][j] = 5;
+                    else board[i][j] = 3;
+                }else{
+                    if(cnt == 3) board[i][j] = 4;
+                    else board[i][j] = 2;
+                }
+            }
+        }
+        for(int i = 0; i < m; i++)
+            for(int j = 0; j < n; j++){
+                if(board[i][j] / 2 == 2) board[i][j] = 1;
+                else board[i][j] = 0;
+            }
+    }
+}
+```
+
+## 64. [判断矩阵是否满足条件](https://leetcode.cn/problems/check-if-grid-satisfies-conditions/)（简单）
+
+> 判断最后一行，判断最后一列，判断其他部分，这是这题我的解法
+>
+> 因为最后一行一列和其他的情况不一样
+
+```java
+class Solution {
+    public boolean satisfiesConditions(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        for(int i = 0; i < m - 1; i++){
+            for(int j = 0; j < n - 1; j++){
+                if(grid[i][j] != grid[i + 1][j] || grid[i][j] == grid[i][j + 1]) 
+                    return false;
+            }
+        }
+        for(int i = 0; i < m - 1; i++)
+            if(grid[i][n - 1] != grid[i + 1][n - 1])
+                return false;
+        for(int j = 0; j < n - 1; j++)
+            if(grid[m - 1][j] == grid[m - 1][j + 1])
+                return false;
+        return true;
+    }
+}
+```
+
+## 65. [删除链表的倒数第 N 个结点](https://leetcode.cn/problems/remove-nth-node-from-end-of-list/)（中等）
+
+> 果然，链表还是双指针问题，进阶说用一趟扫描实现，那我用快慢指针即可，快指针和慢指针中间差n个位置，如果快指针到末尾了，只需要把慢指针位置跳过，然后返回head即可
+
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode fast = head;
+        ListNode slow = head;
+        for(int i = 0; i < n; i++){
+            fast = fast.next;
+        }
+        if(fast == null) return head.next;
+        while(fast.next != null){
+            fast = fast.next;
+            slow = slow.next;
+        }
+        if(slow.next != null)
+            slow.next = slow.next.next;
+        return head;
+    }
+}
+```
 
