@@ -2244,3 +2244,98 @@ class Solution {
 }
 ```
 
+## 66.[完全二叉树的节点个数](https://leetcode.cn/problems/count-complete-tree-nodes/)(简单)
+
+> 我的方法是比较低效的方法，建议使用官方题解的方法，我是直接bfs（层序遍历），然后计数，比较容易理解，因为放在简单题里，我就没考虑太多，但是题干有个信息是完全二叉树，那我们就可以考虑一些简单算法了
+>
+> 二分查找加位运算
+>
+> 我们可以找到层数，只需要判断是否左子树存在，如果有三层，那结果就在4~7之间，因为完全三层的二叉树只有第三层可能有空位置，第一二层不可能有空缺（概念），然后我们可以找4和7的中值是否存在，存在就证明要么是6要么是7，不存在就证明只能是4或者5，然后再找一下就知道结果了
+
+```java
+class Solution {
+    public int countNodes(TreeNode root) {
+        int cnt = 0;
+        if(root == null) return 0;
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.add(root);
+        while(!queue.isEmpty()){
+            cnt++;
+            TreeNode temp = queue.poll();
+            if(temp.left != null) queue.add(temp.left);
+            if(temp.right != null) queue.add((temp.right));
+        }
+        return cnt;
+    }
+}
+```
+
+## 67. [所有数对中数位不同之和](https://leetcode.cn/problems/sum-of-digit-differences-of-all-pairs/)（中等）
+
+> 做完题，看了看，what？我说这么熟悉呢，原来前面做过，这每日一题终于是刷到我做过的题了，看来我已经做了不少题了，都能重复（恬不知耻）参考笔记第二题
+
+```java
+class Solution {
+    public long sumDigitDifferences(int[] nums) {
+        int[] hash = new int[10];
+        long ans = 0;
+        while(nums[0] != 0){
+            long cnt = 0;
+            for(int i = 0; i < nums.length; i++){
+                hash[nums[i] % 10]++;
+                nums[i] /= 10;
+            }
+            for(int j = 0; j < 10; j++){
+                cnt += (nums.length-hash[j])*hash[j];
+                hash[j] = 0;
+            }
+            ans += cnt/2;
+        }
+        return ans;
+    }
+}
+```
+
+## 68.[构造相同颜色的正方形](https://leetcode.cn/problems/make-a-square-with-the-same-color/)(简单)
+
+> 每日一题，简单题，判断四个小格子是否有三个或者四个一样的颜色，有就返回true
+
+```java
+class Solution {
+    public boolean canMakeSquare(char[][] grid) {
+        int b = 0;
+        int w = 0;
+        for(int i = 0; i < grid.length - 1; i++){
+            for(int j = 0; j < grid[0].length - 1; j++){
+                for(int x = i; x < i + 2; x++)
+                    for(int y = j;  y < j + 2; y++){
+                        if(grid[x][y] == 'B') b++;
+                        else w++;
+                    }
+                if(b >= 3 || w >= 3) return true;
+                b = 0;
+                w = 0;
+            }
+        }
+        return false;
+    }
+}
+```
+
+## 69.[在既定时间做作业的学生人数](https://leetcode.cn/problems/number-of-students-doing-homework-at-a-given-time/)(简单)
+
+> 每日一题，连着好几天简单题
+
+```java
+class Solution {
+    public int busyStudent(int[] startTime, int[] endTime, int queryTime) {
+        int ans = 0;
+        for(int i = 0; i < startTime.length; i++){
+            if(queryTime <= endTime[i] && queryTime >= startTime[i])
+                ans++;
+        }
+        return ans;
+    }
+}
+```
+
