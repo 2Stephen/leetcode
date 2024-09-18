@@ -162,3 +162,74 @@ public class Solution {
 }
 ```
 
+### 5. [在排序数组中查找元素的第一个和最后一个位置](https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/)（中等）
+
+> 还是套用模板，我们需要进行两次二分查找，第一次查找相邻两个元素，第一个元素小于target，第二个元素等于target，这就找到了左边界
+>
+> 同理，第二次二分查找查询相邻两元素第一个等于target，第二个大于target
+>
+> 需要考虑边界情况，也就是`[1,2,3,4,4,4]`,`target = 4`，即一边碰壁的情况，防止数组越界
+
+```java
+class Solution {
+    public int binarySearch1(int[] nums, int target){
+        int le = 0;
+        int ri = nums.length - 1;
+        int mid;
+        while (le <= ri){
+            mid = (le + ri) / 2;
+            if(nums[mid] == target && (mid == 0 || nums[mid - 1] < target)) return mid;
+            else if(nums[mid] >= target) ri = mid - 1;
+            else le = mid + 1;
+        }
+        return -1;
+    }
+    public int binarySearch2(int[] nums, int target){
+        int le = 0;
+        int ri = nums.length - 1;
+        int mid;
+        while (le <= ri){
+            mid = (le + ri) / 2;
+            if(nums[mid] == target && (mid == nums.length - 1 ||nums[mid + 1] > target)) return mid;
+            else if(nums[mid] > target) ri = mid - 1;
+            else le = mid + 1;
+        }
+        return -1;
+    }
+    public int[] searchRange(int[] nums, int target) {
+        int[] ans = new int[2];
+        ans[0] = binarySearch1(nums,target);
+        ans[1] = binarySearch2(nums,target);
+        return ans;
+    }
+}
+```
+
+### 6. [寻找旋转排序数组中的最小值](https://leetcode.cn/problems/find-minimum-in-rotated-sorted-array/)（中等）
+
+> 这题和前面的一道题有点像，也是画图题，我们只需要把图画出来，就容易理解了。
+>
+> 只需要找断点即可，但是有一些小点需要特判：
+>
+> 首先我们对于第二次取值的le 和 ri 不能取 mid + 1或者mid - 1了，因为如果执行＋1或-1可能漏掉断点（其实在condition1特判一下也可以避免）
+>
+> 其次如果数组没旋转，那就返回首元素就行，至于判断是否旋转了，判断第一个元素和最后一个元素大小即可（还是做y轴的投影，因为左右两个线段在投影上是没有重合的，所以旋转过后必然后面的线段比前面所有线段都小）
+
+```java
+class Solution {
+    public int findMin(int[] nums) {
+        int le = 0;
+        int ri = nums.length - 1;
+        int mid;
+        if(nums[le] <= nums[ri]) return nums[0];
+        while (le <= ri){
+            mid = (le + ri) / 2;
+            if(nums[mid] > nums[mid + 1]) return nums[mid + 1];
+            if(nums[le] < nums[mid]) le = mid;
+            else ri = mid;
+        }
+        return nums[0];
+    }
+}
+```
+
