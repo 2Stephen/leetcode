@@ -2339,3 +2339,74 @@ class Solution {
 }
 ```
 
+## 70.[袋子里最少数目的球](https://leetcode.cn/problems/minimum-limit-of-balls-in-a-bag/)(中等)
+
+> 经典二分法，需要逆向思维想出来二分法
+>
+> 二分下界为1，上界为一个也不分的情况，即数组中最大值
+>
+> 二分查找，直到找出来一个值，分割次数≤`maxOperations`即可实现所有分割结果都≤二分查找的值
+
+```java
+class Solution {
+    public int minimumSize(int[] nums, int maxOperations) {
+        int right = 0, left = 1;
+        for(int i: nums) right = Math.max(right, i);
+        int mid = 0;
+        while (left < right){
+            mid = left + (right - left) / 2;
+            int temp = maxOperations;
+            for(int i: nums){
+                if(i > mid) temp -= (int)((i - 1) / mid);
+                if(temp < 0) break;
+            }
+            if(temp >= 0) right = mid;
+            else left = mid + 1;
+        }
+        return left;
+    }
+}
+```
+
+## 71.[O(1) 时间插入、删除和获取随机元素](https://leetcode.cn/problems/insert-delete-getrandom-o1/)(中等)
+
+> 哈希表+数组实现，哈希表key存储元素，value存储该元素在数组中的下标
+>
+> 随机获取元素不好实现，仔细思考，我们可以在一个连续数组中随机一个位置实现随机获取元素
+>
+> 因此数组必须连续，那么此时我们如果删除了某个元素，如何让他连续？补位即可，把末尾的元素补位到删除位置，此时还是连续的
+
+```java
+class RandomizedSet {
+    Map<Integer, Integer> map;
+    int[] num;
+    int size;
+    Random random;
+    public RandomizedSet() {
+        num = new int[100000];
+        size = 0;
+        map = new HashMap<>();
+        random = new Random();
+    }
+
+    public boolean insert(int val) {
+        if(map.containsKey(val)) return false;
+        map.put(val, size);
+        num[size++] = val;
+        return true;
+    }
+
+    public boolean remove(int val) {
+        if(!map.containsKey(val)) return false;
+        int loc = map.remove(val);
+        num[loc] = num[--size];
+        if(loc != size) map.put(num[size],loc);
+        return true;
+    }
+
+    public int getRandom() {
+        return num[random.nextInt(size)];
+    }
+}
+```
+
