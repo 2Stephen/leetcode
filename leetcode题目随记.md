@@ -2410,3 +2410,25 @@ class RandomizedSet {
 }
 ```
 
+## 72.[二进制求和](https://leetcode.cn/problems/add-binary/)(简单)
+
+> 从后往前遍历，然后存到StringBuilder里面，最后反转一下就行
+>
+> 别忘记最后如果还有进位要加上
+
+```java
+class Solution {
+    public String addBinary(String a, String b) {
+        StringBuilder stringBuilder = new StringBuilder();
+        int upper = 0;
+        for(int i = a.length() - 1, j = b.length() - 1;i >= 0 || j >= 0; i--, j--){
+            int cur = upper + (i >= 0 ? a.charAt(i) - '0': 0) + (j >= 0 ? b.charAt(j) - '0': 0);
+            upper = cur / 2 == 1 ? 1 : 0;
+            stringBuilder.append(cur % 2);
+        }
+        if(upper == 1) stringBuilder.append(1);
+        return stringBuilder.reverse().toString();
+    }
+}
+```
+
